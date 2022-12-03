@@ -22,10 +22,16 @@ const Result = enum(u32) {
     Lose = 0,
 };
 
-pub fn main() !void {
+const scores = struct {
+    p1: u32 = 0,
+    p2: u32 = 0,
+};
+
+fn calc_scores() scores {
+    @setEvalBranchQuota(100_000_000);
+    var splits = split(u8, data, "\n");
     var p1score: u32 = 0;
     var p2score: u32 = 0;
-    var splits = split(u8, data, "\n");
     while (splits.next()) |line| {
         if (std.mem.eql(u8, line, "")) {
             break;
@@ -82,8 +88,17 @@ pub fn main() !void {
             },
         }
     }
-    print("Part 1: {d}\n", .{p1score});
-    print("Part 2: {d}\n", .{p2score});
+    return scores{
+        .p1 = p1score,
+        .p2 = p2score,
+    };
+}
+
+pub fn main() !void {
+    const totals = comptime calc_scores();
+
+    print("Part 1: {d}\n", .{totals.p1});
+    print("Part 2: {d}\n", .{totals.p2});
 }
 
 // Useful stdlib functions
