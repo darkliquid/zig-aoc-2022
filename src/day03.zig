@@ -10,8 +10,85 @@ const gpa = util.gpa;
 
 const data = @embedFile("data/day03.txt");
 
+fn priority(char: u8) u8 {
+    return switch (char) {
+        inline 'a'...'z' => char-96,
+        inline 'A'...'Z' => char-38,
+        else => unreachable,
+    };
+}
+
+fn part1() !void {
+    var splits = split(u8, data, "\n");
+    var total: u32 = 0;
+    while (splits.next()) |line| {
+        if (std.mem.eql(u8, line, "")) {
+            break;
+        }
+
+        const len = line.len;
+        const left = line[0..len/2];
+        const right = line[len/2..len];
+
+        var map = Map(u8, void).init(gpa);
+        defer map.deinit();
+
+        for (left) |c| {
+            try map.put(c, {});
+        }
+        var char:u8 = 0;
+        for (right) |c| {
+            if (map.contains(c)) {
+                char = c;
+                break;
+            }
+        }
+
+
+        total += priority(char);
+    }
+    print("part 1: {d}\n", .{total});
+}
+
+fn part2() !void {
+    var splits = split(u8, data, "\n");
+    var total: u32 = 0;
+    while (splits.next()) |line| {
+        if (std.mem.eql(u8, line, "")) {
+            break;
+        }
+        var line2 = splits.next() orelse "";
+        var line3 = splits.next() orelse "";
+
+        var map = Map(u8, bool).init(gpa);
+        defer map.deinit();
+
+        for (line) |c| {
+            try map.put(c, false);
+        }
+
+        for (line2) |c| {
+            if (map.contains(c)) {
+                try map.put(c, true);
+            }
+        }
+
+        var char:u8 = 0;
+        for (line3) |c| {
+            if (map.get(c) orelse false) {
+                char = c;
+                break;
+            }
+        }
+
+        total += priority(char);
+    }
+    print("part 2: {d}\n", .{total});
+}
+
 pub fn main() !void {
-    
+    try part1();
+    try part2();
 }
 
 // Useful stdlib functions
