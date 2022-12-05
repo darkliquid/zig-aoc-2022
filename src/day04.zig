@@ -11,7 +11,35 @@ const gpa = util.gpa;
 const data = @embedFile("data/day04.txt");
 
 pub fn main() !void {
-    
+    var splits = split(u8, data, "\n");
+    var count: u32 = 0;
+    var count2: u32 = 0;
+    while (splits.next()) |line| {
+        if (std.mem.eql(u8, line, "")) {
+            break;
+        }
+        var pairs = split(u8, line, ",");
+        var a = split(u8, pairs.next() orelse "", "-");
+        var b = split(u8, pairs.next() orelse "", "-");
+
+        const a_low = try parseInt(u8, a.next() orelse "", 10);
+        const a_high = try parseInt(u8, a.next() orelse "", 10);
+        const b_low = try parseInt(u8, b.next() orelse "", 10);
+        const b_high = try parseInt(u8, b.next() orelse "", 10);
+
+        if ((a_low >= b_low and a_high <= b_high) or (b_low >= a_low and b_high <= a_high)) {
+            count += 1;
+        }
+
+        if (
+            (a_low <= b_high and a_low >= b_low) or
+            (b_low <= a_high and b_low >= a_low)
+            ) {
+            count2 += 1;
+        }
+    }
+    print("Part 1: {}\n", .{count});
+    print("Part 2: {}\n", .{count2});
 }
 
 // Useful stdlib functions
