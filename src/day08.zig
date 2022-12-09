@@ -10,8 +10,156 @@ const gpa = util.gpa;
 
 const data = @embedFile("data/day08.txt");
 
+const Tree = struct {
+    height: u8,
+    visible: bool,
+};
+
+const TreeList = List(Tree);
+
 pub fn main() !void {
-    
+    var splits = split(u8, data, "\n");
+    var grid = List(TreeList).init(gpa);
+    defer grid.deinit();
+
+    // Step one, build the grid
+    while (splits.next()) |line| {
+        if (std.mem.eql(u8, line, "")) {
+            break;
+        }
+
+        var tl = TreeList.init(gpa);
+        for (line) |c| {
+            try tl.append(Tree{
+                .height = c - '0',
+                .visible = false, // top line is always visible
+            });
+        }
+        try grid.append(tl);
+    }
+
+    // Set top and bottom lines to visible
+    for (grid.items[0].items) |*tree| {
+        tree.visible = true;
+    }
+    for (grid.items[grid.items.len-1].items) |*tree| {
+        tree.visible = true;
+    }
+
+    // start start and end of all lines to visible
+    for (grid.items) |*row| {
+        row.items[0].visible = true;
+        row.items[row.items.len-1].visible = true;
+    }
+
+    // output grid for debug
+    for (grid.items) |*row| {
+        for (row.items) |*tree| {
+            if (tree.visible) {
+                print("{}", .{tree.height});
+            } else {
+                print(".", .{});
+            }
+        }
+        print("\n", .{});
+    }
+    print("\n", .{});
+
+    // Step two, set tree visibility horizontally
+    for (grid.items) |*row| {
+        var lastTallestTree: ?*Tree = null;
+        for (row.items) |*tree| {
+            if (lastTallestTree) |lt| {
+                if (tree.height > lt.height) {
+                    lastTallestTree = tree;
+                    tree.visible = true;
+                }
+            } else {
+                tree.visible = true;
+                lastTallestTree = tree;
+            }
+        }
+
+        var i = row.items.len;
+        lastTallestTree = null;
+        while (i > 0) : (i -= 1) {
+            var tree = &(row.items[i-1]);
+            if (lastTallestTree) |lt| {
+                if (tree.height > lt.height) {
+                    lastTallestTree = tree;
+                    tree.visible = true;
+                }
+            } else {
+                tree.visible = true;
+                lastTallestTree = tree;
+            }
+        }
+    }
+
+    // output grid for debug
+    for (grid.items) |row| {
+        for (row.items) |tree| {
+            if (tree.visible) {
+                print("{}", .{tree.height});
+            } else {
+                print(".", .{});
+            }
+        }
+        print("\n", .{});
+    }
+    print("\n", .{});
+
+    // Step three, set tree visibility vertically
+    const line_len = grid.items[0].items.len-1;
+    var x:usize = 0;
+    while (x < line_len) : (x += 1) {
+        var lastTallestTree: ?*Tree = null;
+        for (grid.items) |*row| {
+            var tree = &(row.items[x]);
+            if (lastTallestTree) |lt| {
+                if (tree.height > lt.height) {
+                    lastTallestTree = tree;
+                    tree.visible = true;
+                }
+            } else {
+                tree.visible = true;
+                lastTallestTree = tree;
+            }
+        }
+    }
+    x = line_len+1;
+    while (x > 0) : (x -= 1) {
+        var lastTallestTree: ?*Tree = null;
+        for (grid.items) |*row| {
+            var tree = &(row.items[x-1]);
+            if (lastTallestTree) |lt| {
+                if (tree.height > lt.height) {
+                    lastTallestTree = tree;
+                    tree.visible = true;
+                }
+            } else {
+                tree.visible = true;
+                lastTallestTree = tree;
+            }
+        }
+    }
+
+    // Output final tree visibility
+    var visible:usize = 0;
+    var hidden:usize = 0;
+    for (grid.items) |row| {
+        for (row.items) |tree| {
+            if (tree.visible) {
+                visible += 1;
+                print("{}", .{tree.height});
+            } else {
+                hidden += 1;
+                print(".", .{});
+            }
+        }
+        print("\n", .{});
+    }
+    print("Visible: {}, Hidden: {}\n", .{visible, hidden});
 }
 
 // Useful stdlib functions
