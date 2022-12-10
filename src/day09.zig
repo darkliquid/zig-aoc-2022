@@ -24,6 +24,8 @@ const Cell = struct {
 const Result = struct {
     moves: List(Move),
     count: u32,
+    head: Coord,
+    tail: Coord,
 };
 
 const Direction = enum {
@@ -38,17 +40,19 @@ const Move = struct {
     dist: u32,
 };
 
-fn move_head(moves: List(Move)) !Result {
+fn move_head(moves: List(Move), head:Coord, tail: Coord) !Result {
     var r = Result{
         .moves = List(Move).init(gpa),
         .count = 0,
+        .head = head,
+        .tail = tail,
     };
 
     var map = Map(Coord, Cell).init(gpa);
     defer map.deinit();
 
-    var last_head = Coord { .x = 0, .y = 0 };
-    var last_tail = Coord { .x = 0, .y = 0 };
+    var last_head = head;
+    var last_tail = tail;
     try map.put(last_head, Cell { .head = true, .tail = true, .head_visits = 1, .tail_visits = 1 });
     var last_cell = map.getPtr(last_head).?;
     for(moves.items) |move| {
@@ -165,8 +169,6 @@ fn move_head(moves: List(Move)) !Result {
                 });
             }
             last_cell = map.getPtr(last_head).?;
-            print("head: x={d} y={d}\n", .{last_head.x, last_head.y});
-            print("tail: x={d} y={d}\n", .{last_tail.x, last_tail.y});
         }
     }
 
@@ -176,6 +178,9 @@ fn move_head(moves: List(Move)) !Result {
             r.count += 1;
         }
     }
+
+    r.head = last_head;
+    r.tail = last_tail;
 
     return r;
 }
@@ -203,16 +208,16 @@ pub fn main() !void {
         }) catch unreachable;
     }
 
-    var r:Result = try move_head(moves);
+    var r:Result = try move_head(moves, Coord{.x =0, .y=0}, Coord{.x=0, .y=0});
     print("Part 1: {}\n", .{r.count});
-    r = try move_head(r.moves);
-    r = try move_head(r.moves);
-    r = try move_head(r.moves);
-    r = try move_head(r.moves);
-    r = try move_head(r.moves);
-    r = try move_head(r.moves);
-    r = try move_head(r.moves);
-    r = try move_head(r.moves);
+    r = try move_head(r.moves, r.tail, r.tail);
+    r = try move_head(r.moves, r.tail, r.tail);
+    r = try move_head(r.moves, r.tail, r.tail);
+    r = try move_head(r.moves, r.tail, r.tail);
+    r = try move_head(r.moves, r.tail, r.tail);
+    r = try move_head(r.moves, r.tail, r.tail);
+    r = try move_head(r.moves, r.tail, r.tail);
+    r = try move_head(r.moves, r.tail, r.tail);
     print("Part 2: {}\n", .{r.count});
 }
 
