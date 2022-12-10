@@ -37,6 +37,8 @@ pub fn main() !void {
         }
         try grid.append(tl);
     }
+    const height = grid.items.len;
+    const width = grid.items[0].items.len;
 
     // Set top and bottom lines to visible
     for (grid.items[0].items) |*tree| {
@@ -110,9 +112,8 @@ pub fn main() !void {
     print("\n", .{});
 
     // Step three, set tree visibility vertically
-    const line_len = grid.items[0].items.len-1;
     var x:usize = 0;
-    while (x < line_len) : (x += 1) {
+    while (x < width-1) : (x += 1) {
         var lastTallestTree: ?*Tree = null;
         for (grid.items) |*row| {
             var tree = &(row.items[x]);
@@ -127,11 +128,14 @@ pub fn main() !void {
             }
         }
     }
-    x = line_len+1;
-    while (x > 0) : (x -= 1) {
+
+    x = 0;
+    while (x < width-1) : (x += 1) {
+        var y:usize = height - 1;
         var lastTallestTree: ?*Tree = null;
-        for (grid.items) |*row| {
-            var tree = &(row.items[x-1]);
+        while (y > 0) : (y -= 1) {
+            var row = &(grid.items[y]);
+            var tree = &(row.items[x]);
             if (lastTallestTree) |lt| {
                 if (tree.height > lt.height) {
                     lastTallestTree = tree;
