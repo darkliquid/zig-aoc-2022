@@ -11,7 +11,80 @@ const gpa = util.gpa;
 const data = @embedFile("data/day10.txt");
 
 pub fn main() !void {
-    
+    var cycles = List(?i64).init(gpa);
+    defer cycles.deinit();
+
+    var splits = split(u8, data, "\n");
+    var i: usize = 0;
+    while (splits.next()) |line| {
+        if (std.mem.eql(u8, line, "")) {
+            break;
+        }
+
+        const op = line[0];
+        var num:i64 = 0;
+
+        switch (op) {
+            'n' => {
+                i = i + 1;
+                print("noop\n", .{});
+            },
+            'a' => {
+                num = try parseInt(i64, line[5..], 10);
+                i = i + 2;
+                print("addx {}\n", .{num});
+            },
+            else => unreachable,
+        }
+        while (cycles.items.len < i+1) {
+            try cycles.append(null);
+        }
+        cycles.items[i] = num;
+    }
+
+    var x:i64 = 1;
+    var signal_sum:i64 = 0;
+    const sprite = [_]u8{'.'} ** 40;
+    for (cycles.items) |val, idx| {
+        if (val) |c| {
+            x += c;
+        }
+
+        var line = sprite;
+        if (x >= -1 and x <= 40) {
+            if (x == -1) {
+                line[0] = '#';
+            } else if (x == 40) {
+                line[39] = '#';
+            } else {
+                const offset = @intCast(usize, x);
+                line[offset] = '#';
+                if (offset > 0) {
+                    line[offset-1] = '#';
+                }
+                if (offset < 39) {
+                    line[offset+1] = '#';
+                }
+            }
+        }
+
+        var cycle:i64 = @intCast(i64, idx)+1;
+        switch (cycle) {
+            20,60,100,140,180,220 => {
+                signal_sum += (cycle * x);
+            },
+            1,41,81,121,161,201  => |v| {
+                print("cycle {0d: >4}->", .{v});
+            },
+            40,80,120,160,200,240 => |v| {
+                print("<-cycle {}\n", .{v});
+            },
+            else => {
+                print("{c}", .{line[@intCast(usize, @mod(cycle-1, 40))]});
+            },
+        }
+    }
+    print("signal sum: {}\n", .{signal_sum});
 }
 
 // Useful stdlib functions
