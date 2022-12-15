@@ -76,18 +76,27 @@ const Monkey = struct {
     }
 
     pub fn throw(self: *Self, monkeys: *List(Monkey)) !void {
+        print("Monkey {}:", .{self.num});
         if (self.items.items.len == 0) {
+            print("  No items left to throw!\n", .{});
             return;
         }
 
         for (self.items.items) |item| {
             self.inspections += 1;
+            print("  Monkey inspects an item with a worry level of {}.\n", .{item});
 
             var new_item = self.operation.apply(item);
+            print("    Monkey applies '{}' to the item, resulting in a worry level of {}.\n", .{self.operation, new_item});
             new_item = @divFloor(new_item, 3);
-            if (@rem(item, self.test_div) == 0) {
+            print("    Monkey gets bored with item. Worry level is divided by 3 to {}.\n", .{new_item});
+            if (@rem(new_item, self.test_div) == 0) {
+                print("    Current item is divisible by {}.\n", .{self.test_div});
+                print("    Monkey throws item to monkey {}.\n", .{self.test_true});
                 try monkeys.items[self.test_true].items.append(new_item);
             } else {
+                print("    Current item is not divisible by {}.\n", .{self.test_div});
+                print("    Monkey throws item to monkey {}.\n", .{self.test_true});
                 try monkeys.items[self.test_false].items.append(new_item);
             }
         }
